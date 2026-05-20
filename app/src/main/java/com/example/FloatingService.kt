@@ -74,12 +74,29 @@ class FloatingService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
 
         createNotificationChannel()
-        startForeground(NOTIFICATION_ID, buildNotification())
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(
+                NOTIFICATION_ID,
+                buildNotification(),
+                android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+            )
+        } else {
+            startForeground(NOTIFICATION_ID, buildNotification())
+        }
 
         windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
         setupOverlayView()
 
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
+    }
+
+    private fun triggerMacro() {
+        val accService = TaxiMacroAccessibilityService.instance
+        if (accService != null) {
+            accService.startMacroTask(this)
+        } else {
+            TaxiMacroAccessibilityService.log("Служба доступности неактивна. Включите её в специальных возможностях.")
+        }
     }
 
     private fun setupOverlayView() {
@@ -91,13 +108,12 @@ class FloatingService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
             setContent {
                 val state by TaxiMacroAccessibilityService.macroState.collectAsState()
                 FloatingOverlayButton(state = state) {
-                    val accService = TaxiMacroAccessibilityService.instance
-                    if (accService != null) {
-                        accService.startMacroTask(this@FloatingService)
-                    } else {
-                        TaxiMacroAccessibilityService.log("Error: Accessibility service is offline. Please enable in Settings.")
-                    }
+                    triggerMacro()
                 }
+            }
+
+            setOnClickListener {
+                triggerMacro()
             }
         }
 
