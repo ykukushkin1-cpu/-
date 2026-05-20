@@ -1,0 +1,6 @@
+{
+  "name": "Такси Макро Робот",
+  "description": "Автоматизированный ассистент и парсер коэффициентов цен для построения оптимального маршрута в Яндекс Навигаторе.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
